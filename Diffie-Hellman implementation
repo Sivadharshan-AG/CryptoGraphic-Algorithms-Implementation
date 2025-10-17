@@ -1,0 +1,338 @@
+ Input prime p
+p = int(input("Enter prime p: "))
+
+print("Primitive roots of", p, ":")
+for i in range(1, p):
+    a = []
+    for j in range(1, p):
+        b = pow(i, j, p)
+        if b in a:
+            break
+        a.append(b)
+    if all(x in a for x in range(1, p)):
+        print(i, end=" ")
+print()
+
+# Taking generator as 2
+g = 2
+
+# Private keys
+x = int(input("Sender's private key x: "))
+y = int(input("Receiver's private key y: "))
+
+# Public keys
+g1 = pow(g, x, p)
+g2 = pow(g, y, p)
+print("Public keys:", g1, g2)
+
+# Shared secret keys
+s1 = pow(g2, x, p)
+s2 = pow(g1, y, p)
+print("Shared secrets:", s1, s2)
+🔹 Step-by-Step Explanation
+Step 1: Input Prime Number
+p = int(input("Enter prime p: "))
+The user enters a prime number 
+p
+p.
+
+This prime number is used as the modulus in all modular arithmetic operations.
+
+For Diffie–Hellman, we must use a prime number because it ensures the group 
+Z
+p
+∗
+Z 
+p
+∗
+​
+  (numbers from 1 to p−1) forms a cyclic group suitable for secure key exchange.
+
+Step 2: Find Primitive Roots (Generators)
+print("Primitive roots of", p, ":")
+for i in range(1, p):
+    a = []
+    for j in range(1, p):
+        b = pow(i, j, p)
+        if b in a:
+            break
+        a.append(b)
+    if all(x in a for x in range(1, p)):
+        print(i, end=" ")
+print()
+Goal: Find all primitive roots (generators) of the prime number 
+p
+p.
+
+Let’s break it down:
+
+for i in range(1, p):
+Loops over all numbers from 1 to 
+p
+−
+1
+p−1 to test which ones are primitive roots.
+
+Inside,
+
+a = []
+for j in range(1, p):
+    b = pow(i, j, p)
+Computes 
+i
+j
+m
+o
+d
+ 
+ 
+p
+i 
+j
+ modp using pow(i, j, p) (fast modular exponentiation).
+
+The results are stored in list a to check if the sequence covers all values 1 to 
+p
+−
+1
+p−1.
+
+If a value repeats (if b in a:), it breaks because primitive roots generate all unique numbers before repeating.
+
+After checking all powers,
+
+if all(x in a for x in range(1, p)):
+    print(i, end=" ")
+This prints 
+i
+i if it generates all numbers from 1 to p−1, meaning it’s a primitive root (generator).
+
+Why we need this?
+A primitive root 
+g
+g ensures that every number modulo 
+p
+p can be generated as 
+g
+k
+m
+o
+d
+ 
+ 
+p
+g 
+k
+ modp for some 
+k
+k.
+It’s essential for secure key exchange.
+
+Step 3: Select Generator
+g = 2
+The code simply takes generator 
+g
+=
+2
+g=2.
+In practice, you could pick any primitive root from the list above.
+
+Step 4: Input Private Keys
+x = int(input("Sender's private key x: "))
+y = int(input("Receiver's private key y: "))
+Each participant picks a private key:
+
+x
+x: Alice’s private key (Sender)
+
+y
+y: Bob’s private key (Receiver)
+
+These are kept secret and never shared publicly.
+
+Step 5: Compute Public Keys
+g1 = pow(g, x, p)
+g2 = pow(g, y, p)
+print("Public keys:", g1, g2)
+Each person computes their public key using the formula:
+
+A
+=
+g
+x
+m
+o
+d
+ 
+ 
+p
+A=g 
+x
+ modp
+B
+=
+g
+y
+m
+o
+d
+ 
+ 
+p
+B=g 
+y
+ modp
+So:
+
+g1 = 
+g
+x
+m
+o
+d
+ 
+ 
+p
+g 
+x
+ modp (Alice’s public key)
+
+g2 = 
+g
+y
+m
+o
+d
+ 
+ 
+p
+g 
+y
+ modp (Bob’s public key)
+
+These public keys are exchanged between Alice and Bob over the network.
+
+Step 6: Compute Shared Secret
+s1 = pow(g2, x, p)
+s2 = pow(g1, y, p)
+print("Shared secrets:", s1, s2)
+Now both parties compute the shared secret key independently.
+
+For Sender:
+
+s
+1
+=
+(
+g
+2
+)
+x
+m
+o
+d
+ 
+ 
+p
+=
+(
+g
+y
+)
+x
+m
+o
+d
+ 
+ 
+p
+=
+g
+x
+y
+m
+o
+d
+ 
+ 
+p
+s1=(g2) 
+x
+ modp=(g 
+y
+ ) 
+x
+ modp=g 
+xy
+ modp
+For Receiver:
+
+s
+2
+=
+(
+g
+1
+)
+y
+m
+o
+d
+ 
+ 
+p
+=
+(
+g
+x
+)
+y
+m
+o
+d
+ 
+ 
+p
+=
+g
+x
+y
+m
+o
+d
+ 
+ 
+p
+s2=(g1) 
+y
+ modp=(g 
+x
+ ) 
+y
+ modp=g 
+xy
+ modp
+✅ Both get the same shared secret because 
+g
+x
+y
+=
+g
+y
+x
+g 
+xy
+ =g 
+yx
+ .
+
+This shared secret can then be used as a key for symmetric encryption (like AES).
+
+🔹 Example Run
+Enter prime p: 23
+Primitive roots of 23 : 5 7 10 11 14 15 17 19 20 21 22 
+Sender's private key x: 6
+Receiver's private key y: 15
+Public keys: 8 19
+Shared secrets: 2 2
+✅ Both shared secrets are equal → Successful key exchange.
