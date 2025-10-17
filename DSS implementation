@@ -1,0 +1,131 @@
+Simple DSS / DSA (Toy Example – Educational Only)
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
+public class SimpleDSS {
+    public static void main(String[] args) throws Exception {
+        SecureRandom random = new SecureRandom();
+
+        // Step 1: Choose primes p and q (q divides p-1)
+        BigInteger q = BigInteger.probablePrime(8, random);   // small prime
+        BigInteger p = q.multiply(BigInteger.valueOf(15)).add(BigInteger.ONE);
+        while (!p.isProbablePrime(10)) {
+            p = q.multiply(BigInteger.valueOf(random.nextInt(20) + 2)).add(BigInteger.ONE);
+        }
+
+        // Step 2: Choose generator g
+        BigInteger h = new BigInteger(p.bitLength()-1, random);
+        BigInteger g = h.modPow(p.subtract(BigInteger.ONE).divide(q), p);
+
+        // Step 3: Choose private key x and public key y
+        BigInteger x = new BigInteger(q.bitLength()-1, random); // private
+        BigInteger y = g.modPow(x, p); // public
+
+        System.out.println("Public key (p, q, g, y): " + p + ", " + q + ", " + g + ", " + y);
+        System.out.println("Private key x: " + x);
+
+        // Step 4: Sign message m
+        BigInteger m = new BigInteger("123"); // message number (toy)
+        BigInteger k;
+        do {
+            k = new BigInteger(q.bitLength()-1, random);
+        } while (k.equals(BigInteger.ZERO));
+
+        BigInteger r = g.modPow(k, p).mod(q);
+        BigInteger kInv = k.modInverse(q);
+        BigInteger s = (kInv.multiply(m.add(x.multiply(r)))).mod(q);
+
+        System.out.println("Signature (r,s): " + r + ", " + s);
+
+        // Step 5: Verify
+        BigInteger w = s.modInverse(q);
+        BigInteger u1 = (m.multiply(w)).mod(q);
+        BigInteger u2 = (r.multiply(w)).mod(q);
+        BigInteger v = ((g.modPow(u1, p).multiply(y.modPow(u2, p))).mod(p)).mod(q);
+
+        System.out.println("Verification v: " + v);
+        if (v.equals(r)) {
+            System.out.println("✅ Signature is valid!");
+        } else {
+            System.out.println("❌ Signature is invalid!");
+        }
+    }
+}
+This code shows key generation, signing, and verification.
+But since we use small primes, it’s not secure, only for learning.
+
+2. Real DSS Implementation (Using Java Security)
+Java already supports DSS/DSA via java.security APIs.
+
+import java.security.*;
+import java.util.Base64;
+
+public class DSSDemo {
+    public static void main(String[] args) throws Exception {
+        // Step 1: Generate key pair
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA");
+        keyGen.initialize(1024); // key size
+        KeyPair pair = keyGen.generateKeyPair();
+
+        PrivateKey privateKey = pair.getPrivate();
+        PublicKey publicKey = pair.getPublic();
+
+        // Step 2: Create Signature object
+        Signature dsa = Signature.getInstance("SHA256withDSA");
+
+        // Step 3: Sign the message
+        String message = "Hello, DSS Digital Signature!";
+        dsa.initSign(privateKey);
+        dsa.update(message.getBytes());
+        byte[] signature = dsa.sign();
+
+        System.out.println("Message: " + message);
+        System.out.println("Signature: " + Base64.getEncoder().encodeToString(signature));
+
+        // Step 4: Verify the signature
+        Signature dsaVerify = Signature.getInstance("SHA256withDSA");
+        dsaVerify.initVerify(publicKey);
+        dsaVerify.update(message.getBytes());
+
+        boolean valid = dsaVerify.verify(signature);
+        System.out.println("Verification: " + (valid ? "✅ Valid" : "❌ Invalid"));
+    }
+}
+🔹 Example Output
+Message: Hello, DSS Digital Signature!
+Signature: hJz28aV3d2Z8Y5LJXG...
+Verification: ✅ Valid
+✅ Use the toy version to understand the math.
+✅ Use the Java Security version for real-world applications.
+
+Theory:
+
+DSS / DSA Overview
+Key Generation
+
+Generate private key x
+
+Compute public key y = g^x mod p
+
+Signing
+
+Choose random k
+
+Compute r = (g^k mod p) mod q
+
+Compute s = (k^-1 * (H(m) + x*r)) mod q
+
+Signature = (r, s)
+
+Verification
+
+Compute w = s^-1 mod q
+
+Compute u1 = (H(m) * w) mod q
+
+Compute u2 = (r * w) mod q
+
+Compute v = ((g^u1 * y^u2) mod p) mod q
+
+Signature valid if v == r
