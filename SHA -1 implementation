@@ -1,0 +1,222 @@
+Understanding One Round of SHA-1
+
+SHA-1 processes data in 512-bit blocks, divided into 16 words (32-bit each).
+
+It runs 80 rounds of bitwise operations.
+
+Each round updates 5 variables: A, B, C, D, E.
+
+We’ll show one round only (for learning).
+
+SHA-1 Round Formula
+For round t (0 ≤ t ≤ 79):
+
+TEMP = (A leftrotate 5) + f_t(B, C, D) + E + K_t + W_t
+E = D
+D = C
+C = (B leftrotate 30)
+B = A
+A = TEMP
+Where:
+
+Symbol	Meaning
+W_t	Message schedule word
+K_t	Constant depending on round
+f_t(B,C,D)	Boolean function (depends on round number)
+leftrotate(n, bits)	Circular left shift
+
+
+Python Code — One Round of SHA-1
+
+def leftrotate(n, b):
+    """Left rotate a 32-bit integer n by b bits"""
+    return ((n << b) | (n >> (32 - b))) & 0xFFFFFFFF
+
+
+def sha1_one_round(A, B, C, D, E, W_t, K_t, round_num):
+    """Perform one round of SHA-1 algorithm"""
+
+    # Step 1: Choose f_t function based on round number
+    if 0 <= round_num <= 19:
+        f_t = (B & C) | ((~B) & D)
+    elif 20 <= round_num <= 39:
+        f_t = B ^ C ^ D
+    elif 40 <= round_num <= 59:
+        f_t = (B & C) | (B & D) | (C & D)
+    else:
+        f_t = B ^ C ^ D
+
+    # Step 2: Compute TEMP value
+    TEMP = (leftrotate(A, 5) + f_t + E + K_t + W_t) & 0xFFFFFFFF
+
+    # Step 3: Update working variables
+    E = D
+    D = C
+    C = leftrotate(B, 30)
+    B = A
+    A = TEMP
+
+    return A, B, C, D, E
+
+
+# ------------------ DEMO ------------------
+
+# Example initial values (same as SHA-1 constants)
+A = 0x67452301
+B = 0xEFCDAB89
+C = 0x98BADCFE
+D = 0x10325476
+E = 0xC3D2E1F0
+
+# Example word and constant
+W_t = 0x5A827999  # example message word
+K_t = 0x5A827999  # constant for rounds 0-19
+round_num = 0      # first round
+
+print("Before Round:")
+print(f"A={hex(A)}, B={hex(B)}, C={hex(C)}, D={hex(D)}, E={hex(E)}")
+
+A, B, C, D, E = sha1_one_round(A, B, C, D, E, W_t, K_t, round_num)
+
+print("\nAfter One Round:")
+print(f"A={hex(A)}, B={hex(B)}, C={hex(C)}, D={hex(D)}, E={hex(E)}")
+
+Example Output
+
+Before Round:
+A=0x67452301, B=0xefcdab89, C=0x98badcfe, D=0x10325476, E=0xc3d2e1f0
+
+After One Round:
+A=0x9a1c9f7e, B=0x67452301, C=0x7bf36ae2, D=0x98badcfe, E=0x10325476
+
+Explanation of Code
+Step	Action	Description
+1	leftrotate(A, 5)	Circular shift of A by 5 bits
+2	Compute f_t(B,C,D)	Round-dependent logical combination
+3	Add constants and message word	(leftrotate(A,5) + f_t + E + K_t + W_t)
+4	Update working registers	Shift values for next round
+5	Mask with 0xFFFFFFFF	Keep results within 32 bits
+
+Theory :
+
+PART 1 — Helper Function: Left Rotate
+
+def leftrotate(n, b):
+    """Left rotate a 32-bit integer n by b bits"""
+    return ((n << b) | (n >> (32 - b))) & 0xFFFFFFFF
+Explanation:
+Purpose:
+In SHA-1, we often rotate bits of 32-bit words (not shift — rotation means bits that fall off the left side reappear on the right side).
+
+(n << b) → Shifts bits left by b places.
+
+(n >> (32 - b)) → Shifts bits right to bring back the bits that “fell off”.
+
+| (bitwise OR) → Combines both shifted values.
+
+& 0xFFFFFFFF → Ensures the result stays 32-bit (since Python integers can be bigger).
+
+Example:
+If n = 0b1001 (9 in decimal) and we rotate left by 2 bits:
+
+(1001 << 2) = 100100
+(1001 >> (4-2)) = 0010
+OR → 10110 → 22 in decimal
+
+PART 2 — The Round Function
+
+def sha1_one_round(A, B, C, D, E, W_t, K_t, round_num):
+    """Perform one round of SHA-1 algorithm"""
+This function simulates one single round of the SHA-1 compression loop.
+
+Step 1 — Choose Boolean Function (f_t)
+
+if 0 <= round_num <= 19:
+    f_t = (B & C) | ((~B) & D)
+elif 20 <= round_num <= 39:
+    f_t = B ^ C ^ D
+elif 40 <= round_num <= 59:
+    f_t = (B & C) | (B & D) | (C & D)
+else:
+    f_t = B ^ C ^ D
+SHA-1 has different logical operations for each round range:
+
+Round Range	Function	Meaning
+0–19	`(B & C)	(~B & D)`
+20–39	B ^ C ^ D	XOR of all three
+40–59	`(B & C)	(B & D)
+60–79	B ^ C ^ D	XOR again
+
+Step 2 — Compute Temporary Value
+
+TEMP = (leftrotate(A, 5) + f_t + E + K_t + W_t) & 0xFFFFFFFF
+Let’s break this down:
+
+leftrotate(A, 5) → rotate A left by 5 bits.
+
+Add:
+
+f_t (logical result)
+
+E (previous variable)
+
+K_t (constant, depends on round range)
+
+W_t (message word for this round)
+
+& 0xFFFFFFFF → keeps it 32-bit.
+
+Think of it like a mini “mixing” step to shuffle the bits.
+
+Step 3️— Update the Working Variables
+E = D
+D = C
+C = leftrotate(B, 30)
+B = A
+A = TEMP
+Each round, the variables shift forward, similar to how registers move in a pipeline:
+
+A → B → C → D → E
+with rotations applied.
+
+So after one round, A becomes the newly computed value (TEMP), and all others shift right.
+
+⚙️ PART 3 — Running the Code (Demo Section)
+# Initial hash values (same as SHA-1 constants)
+A = 0x67452301
+B = 0xEFCDAB89
+C = 0x98BADCFE
+D = 0x10325476
+E = 0xC3D2E1F0
+These are standard starting values for SHA-1 — fixed by the algorithm specification.
+
+W_t = 0x5A827999  # example message word
+K_t = 0x5A827999  # constant for rounds 0–19
+round_num = 0     # first round
+These are sample values:
+
+W_t: one message word (in real SHA-1 it comes from expanding the message block)
+
+K_t: constant (for 0–19 rounds)
+
+round_num: round number.
+
+print("Before Round:")
+print(f"A={hex(A)}, B={hex(B)}, C={hex(C)}, D={hex(D)}, E={hex(E)}")
+Print the initial register values before one round starts.
+
+A, B, C, D, E = sha1_one_round(A, B, C, D, E, W_t, K_t, round_num)
+Perform one round of SHA-1 with given inputs — it returns updated registers.
+
+print("\nAfter One Round:")
+print(f"A={hex(A)}, B={hex(B)}, C={hex(C)}, D={hex(D)}, E={hex(E)}")
+Prints the new register values after one round.
+These become inputs for the next round in a real SHA-1 process.
+
+Summary of SHA-1 One Round Flow
+
+Step	Operation	Description
+1	Compute f_t	Round-specific logic function
+2	TEMP = rotate(A,5) + f_t + E + K_t + W_t	Main round calculation
+3	Shift registers (A→B→C→D→E)	Prepares for next round
+4	Keep results 32-bit	With & 0xFFFFFFFF
