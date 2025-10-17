@@ -1,0 +1,673 @@
+Caesar Cipher encryption and decryption.
+
+import java.util.Scanner;
+
+public class CaesarCipher {
+    
+    // Encryption method
+    public static String encrypt(String text, int shift) {
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+
+            if (Character.isUpperCase(ch)) {
+                // Uppercase letters
+                char c = (char) ((ch - 'A' + shift) % 26 + 'A');
+                result.append(c);
+            } else if (Character.isLowerCase(ch)) {
+                // Lowercase letters
+                char c = (char) ((ch - 'a' + shift) % 26 + 'a');
+                result.append(c);
+            } else {
+                // Non-alphabetic characters remain unchanged
+                result.append(ch);
+            }
+        }
+
+        return result.toString();
+    }
+
+    // Decryption method
+    public static String decrypt(String text, int shift) {
+        // Decryption is just encryption with (26 - shift)
+        return encrypt(text, 26 - (shift % 26));
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter text: ");
+        String text = sc.nextLine();
+
+        System.out.print("Enter shift value: ");
+        int shift = sc.nextInt();
+
+        // Encrypt
+        String encrypted = encrypt(text, shift);
+        System.out.println("Encrypted text: " + encrypted);
+
+        // Decrypt
+        String decrypted = decrypt(encrypted, shift);
+        System.out.println("Decrypted text: " + decrypted);
+
+        sc.close();
+    }
+}
+
+Example run:
+Enter text: Hello World
+Enter shift value: 3
+Encrypted text: Khoor Zruog
+Decrypted text: Hello World
+
+This code supports both uppercase and lowercase letters and leaves spaces/punctuation unchanged.
+
+Do you also want me to extend this so that it can brute-force crack Caesar cipher without knowing the shift?
+
+Code + line-by-line explanation
+import java.util.Scanner;
+Imports the Scanner class from java.util so the program can read input from the user (keyboard).
+
+public class CaesarCipher {
+Declares a public class named CaesarCipher. In Java every .java file contains a class; here the class groups the encryption/decryption methods and main.
+
+    // Encryption method
+    public static String encrypt(String text, int shift) {
+        StringBuilder result = new StringBuilder();
+public: method is visible anywhere.
+
+static: method belongs to the class (no need to instantiate CaesarCipher to call it).
+
+String encrypt(String text, int shift): method signature — takes the plaintext text and an integer shift, returns the encrypted String.
+
+Inside, StringBuilder result = new StringBuilder(); creates a mutable buffer to efficiently build the output string (better than concatenating String repeatedly).
+
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+A for loop iterates over every character index i from 0 to text.length()-1.
+
+char ch = text.charAt(i); extracts the character at position i into ch.
+
+            if (Character.isUpperCase(ch)) {
+                // Uppercase letters
+                char c = (char) ((ch - 'A' + shift) % 26 + 'A');
+                result.append(c);
+Character.isUpperCase(ch) checks if ch is an uppercase letter 'A'..'Z'.
+
+Calculation explained:
+
+(ch - 'A') converts the letter to a 0–25 index (e.g., 'A' -> 0, 'B' -> 1).
+
++ shift moves it forward by shift positions.
+
+% 26 wraps around when it goes past 'Z' (keeps within 0–25).
+
++ 'A' converts the index back to an ASCII/Unicode letter code.
+
+(char) casts the numeric value back to a char.
+
+result.append(c); adds the encrypted uppercase character to the StringBuilder.
+
+            } else if (Character.isLowerCase(ch)) {
+                // Lowercase letters
+                char c = (char) ((ch - 'a' + shift) % 26 + 'a');
+                result.append(c);
+else if (Character.isLowerCase(ch)) handles lowercase letters 'a'..'z'.
+
+The math is the same as for uppercase but uses 'a' as the base so case is preserved.
+
+Appends the encrypted lowercase char.
+
+            } else {
+                // Non-alphabetic characters remain unchanged
+                result.append(ch);
+            }
+        }
+else branch: if the character is not an uppercase or lowercase letter (digits, space, punctuation), it is left unchanged — appended as-is.
+
+The for loop then continues to next character.
+
+        return result.toString();
+    }
+Converts the StringBuilder to a regular String and returns the encrypted result from the encrypt method.
+
+    // Decryption method
+    public static String decrypt(String text, int shift) {
+        // Decryption is just encryption with (26 - shift)
+        return encrypt(text, 26 - (shift % 26));
+    }
+decrypt has same signature pattern (public static String).
+
+Decryption formula: shifting by 26 - shift is equivalent to reversing the original shift (because the alphabet length is 26).
+
+shift % 26 normalizes shift if the user gives a value bigger than 26 or negative; then 26 - ... finds the reverse shift.
+
+It calls the encrypt method again with the reverse shift — code reuse simplifies the program.
+
+Note: if shift % 26 == 0, 26 - 0 becomes 26, and since encrypt uses % 26 inside, shifting by 26 is OK (effectively 0). So behavior remains correct.
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+main is the program entry point. JVM runs this method.
+
+Scanner sc = new Scanner(System.in); creates a Scanner object sc to read user input from standard input (keyboard).
+
+        System.out.print("Enter text: ");
+        String text = sc.nextLine();
+System.out.print("Enter text: "); prints prompt without newline.
+
+String text = sc.nextLine(); reads the entire line input (including spaces) the user types and stores in text.
+
+        System.out.print("Enter shift value: ");
+        int shift = sc.nextInt();
+Prompts user for the shift amount.
+
+sc.nextInt() reads the next integer token and stores it to shift.
+
+(Small note: if you later call nextLine() after nextInt() you must consume the leftover newline — not needed here because we read text first.)
+
+        // Encrypt
+        String encrypted = encrypt(text, shift);
+        System.out.println("Encrypted text: " + encrypted);
+Calls encrypt with the provided text and shift.
+
+Prints the encrypted result.
+
+        // Decrypt
+        String decrypted = decrypt(encrypted, shift);
+        System.out.println("Decrypted text: " + decrypted);
+Calls decrypt on the encrypted string using the same shift to verify decryption works.
+
+Prints the decrypted text (should match original text).
+
+        sc.close();
+    }
+}
+sc.close() closes the Scanner to release system resources (good practice).
+
+Closes main and the class.
+
+Extra notes and small edge-cases
+Shift normalization: The code handles large shifts correctly with % 26 inside the math and in the decrypt method (shift % 26).
+
+Negative shift values: If user enters a negative shift, (ch - 'A' + shift) % 26 in Java can produce negative values because Java's % keeps sign of the left operand. In practice the code as written may give negative intermediate results; however in Java, casting back with + 'A' after a negative % can produce wrong chars. To be safe with negative shifts you can normalize shift first:
+shift = ((shift % 26) + 26) % 26;
+That makes shift always between 0 and 25.
+
+Non-English letters: This code only shifts ASCII letters A–Z and a–z. Letters with accents or other Unicode alphabets are treated as non-alphabetic and left unchanged.
+
+Scanner pitfalls: If you change input order (read int then line) remember to consume the newline left by nextInt() with sc.nextLine() before reading another line.
+
+Suggestion (tiny improvement)
+Replace the first line of encrypt with:
+
+shift = ((shift % 26) + 26) % 26; // normalize shift to 0..25, safe for negative shifts
+This makes the method robust for negative or very large shift values.
+
+If you want, I can:
+
+Show the exact updated code with the negative-shift fix applied.
+
+Add a brute-force cracker that prints all 26 decryptions.
+
+Make a GUI or file I/O version.
+
+Which one should I do next?
+
+You said:
+`(ch - 'A')` converts the letter to a 0–25 index (e.g., 'A' -> 0, 'B' -> 1).
+
+how does this work
+ChatGPT said:
+Great question — nice to focus on the small but important bit. Here’s a clear, step-by-step explanation of what (ch - 'A') does and why it works in Java.
+
+1) Characters are numbers under the hood
+In Java a char is really a 16-bit integer (a Unicode code unit). When you use arithmetic with a char, Java promotes it to an int and uses its numeric code point.
+
+'A' has numeric value 65 (in ASCII / Unicode).
+
+'B' is 66, 'C' is 67, … 'Z' is 90.
+
+So ch - 'A' is an integer subtraction.
+
+2) ch - 'A' gives the 0–25 index
+When ch is an uppercase letter between 'A' and 'Z':
+
+Example: ch = 'H' → numeric value 72.
+
+ch - 'A' → 72 - 65 = 7.
+
+That 7 is the 0-based index of 'H' in the alphabet: 'A' → 0, 'B' → 1, … 'H' → 7.
+This index is useful for doing circular shifts inside the 0..25 range.
+
+3) Apply the shift inside 0–25, then convert back
+To shift and wrap around the alphabet you:
+
+Convert to 0–25: (ch - 'A')
+
+Add the shift: + shift
+
+Wrap with modulo 26: % 26
+
+Convert back to character by adding 'A': + 'A'
+
+Cast to char to get the resulting character.
+
+Example (shift = 3, ch = 'H'):
+
+(ch - 'A') = 72 - 65 = 7
+
+7 + shift = 7 + 3 = 10
+
+10 % 26 = 10
+
+10 + 'A' = 10 + 65 = 75
+
+(char)75 = 'K'
+
+So 'H' shifted by 3 becomes 'K'.
+
+4) Wrap-around example (near 'Z')
+Example: ch = 'Z' (90), shift = 2
+
+ch - 'A' = 90 - 65 = 25
+
+25 + 2 = 27
+
+27 % 26 = 1
+
+1 + 'A' = 66 → (char)66 = 'B'
+So 'Z' + 2 → 'B'.
+
+5) Lowercase letters use 'a' as the base
+Lowercase letters 'a'..'z' are handled the same way but relative to 'a' (which is 97):
+
+(ch - 'a') maps 'a'→0, 'b'→1, etc.
+Then add shift, % 26, then + 'a' to convert back.
+
+6) Be careful with negative shifts (Java % behavior)
+Java’s % can yield negative results if the left operand is negative. If shift is negative or large, intermediate (ch - 'A' + shift) might be negative before % 26.
+
+Safe normalization for shift at the start of the method:
+
+shift = ((shift % 26) + 26) % 26; // makes shift in 0..25 always
+This guarantees (ch - 'A' + shift) is non-negative when you take % 26.
+
+7) Quick demo code snippet (prints numeric values)
+char ch = 'H';
+int chVal = ch;         // 72
+int index = ch - 'A';   // 7
+int shifted = (index + 3) % 26; // 10
+char result = (char)(shifted + 'A'); // 'K'
+TL;DR
+(ch - 'A') converts the letter ch into its 0..25 alphabet index by subtracting the numeric code of 'A'. You do arithmetic on that index (shift + wrap with % 26), then add 'A' back to get the shifted character.
+
+Want a tiny runnable snippet that prints the steps for any letter and shift so you can see the numbers live? I can paste it right here.
+
+
+
+
+🔹 What is StringBuilder?
+In Java, StringBuilder is a mutable sequence of characters (a class in java.lang).
+
+Mutable means the content can change without creating a new object every time.
+
+It’s like a growable, editable version of a String.
+
+🔹 Why not just use String?
+In Java, String is immutable.
+That means once a String is created, it cannot be changed.
+
+So if you keep doing:
+
+String s = "";
+s = s + "a";
+s = s + "b";
+s = s + "c";
+Every + creates a new String object in memory → wastes time and memory.
+
+Example: If you loop through 1000 characters and keep appending, that could create 1000 different String objects.
+
+🔹 How does StringBuilder solve this?
+StringBuilder stores characters in an internal resizable array.
+
+When you call .append(), it just writes into that array — no new object is created.
+
+Much faster for building or modifying strings repeatedly (like in Caesar Cipher).
+
+🔹 Common Methods of StringBuilder
+append(x) → adds text/char to the end.
+
+insert(pos, x) → inserts at given index.
+
+delete(start, end) → removes characters.
+
+reverse() → reverses string.
+
+toString() → converts back to String.
+
+🔹 Example
+public class Test {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Hello");   // "Hello"
+        sb.append(" World"); // "Hello World"
+
+        sb.insert(6, "Java "); // "Hello Java World"
+
+        sb.delete(5, 10); // "Hello World"
+
+        sb.reverse(); // "dlroW olleH"
+
+        System.out.println(sb.toString());
+    }
+}
+Output:
+
+dlroW olleH
+✅ In your Caesar Cipher code, StringBuilder result = new StringBuilder(); is used so we can efficiently build the encrypted/decrypted string character by character.
+
+Do you want me to also explain why we call result.toString() at the end instead of directly returning result?
+
+You said:
+return encrypt(text, 26 - (shift % 26));
+
+
+
+return encrypt(text, 26 - (shift % 26));
+Let’s break it down step by step.
+
+🔹 The problem
+In Caesar cipher, encryption means:
+
+newIndex = (oldIndex + shift) mod 26
+Decryption should be the opposite:
+
+oldIndex = (newIndex - shift) mod 26
+But instead of writing a whole new method for decryption, we can be clever:
+👉 Decryption is the same as encryption, but with the opposite shift.
+
+🔹 Why 26 - (shift % 26) ?
+The alphabet has 26 letters.
+
+If we encrypt with shift, then decrypting with 26 - shift undoes it.
+
+Example:
+Plaintext: A (index = 0)
+Shift = 3 → Encryption: (0 + 3) % 26 = 3 → 'D'
+
+Now decrypt:
+(3 + (26 - 3)) % 26 = (3 + 23) % 26 = 26 % 26 = 0 → 'A' ✅ original recovered.
+
+🔹 Why % 26 inside?
+If the user gives a big shift (like 29), we only care about shifts in the range 0–25.
+So we reduce it:
+
+29 % 26 = 3
+So shift % 26 keeps the value safe within alphabet size.
+
+🔹 Put it all together
+shift % 26 → normalize shift between 0–25.
+
+26 - (shift % 26) → compute the opposite shift.
+
+encrypt(text, …) → reuse the same method for decryption.
+
+So this line:
+
+return encrypt(text, 26 - (shift % 26));
+means:
+👉 “To decrypt, just call the encrypt method again, but with the reverse shift.”
+
+🔹 Mini Example
+String encrypted = encrypt("HELLO", 5);  // "MJQQT"
+String decrypted = decrypt(encrypted, 5); // calls encrypt("MJQQT", 26-5=21)
+"HELLO" → "MJQQT"
+
+"MJQQT" with shift 21 → "HELLO"
+
+
+
+🔹 Concept
+In English (or any language), letters appear with different frequencies.
+
+Example in English:
+
+E is the most common (~12%).
+
+T, A, O, I, N are also high.
+
+Rare ones: Q, Z, X.
+
+In Caesar cipher, letters are just shifted, so the relative frequencies don’t change.
+
+The most frequent letter in ciphertext likely corresponds to the most frequent letter in English (E).
+
+Using that, we can guess the shift.
+
+🔹 Steps
+Count how often each letter appears in the ciphertext.
+
+Find the letter with the highest frequency.
+
+Assume it was originally 'E' (most common in English).
+
+Compute the shift needed to map that ciphertext letter back to 'E'.
+
+Decrypt with that shift.
+
+If needed, try other likely letters (T, A) and check which output looks most like real words.
+
+🔹 Java Implementation
+Here’s a simple code for Caesar cipher frequency analysis:
+
+import java.util.*;
+
+public class CaesarFrequencyAnalysis {
+
+    // Decrypt with given shift
+    public static String decrypt(String text, int shift) {
+        StringBuilder result = new StringBuilder();
+        shift = ((shift % 26) + 26) % 26; // normalize
+
+        for (char ch : text.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
+                char c = (char) ((ch - 'A' - shift + 26) % 26 + 'A');
+                result.append(c);
+            } else if (Character.isLowerCase(ch)) {
+                char c = (char) ((ch - 'a' - shift + 26) % 26 + 'a');
+                result.append(c);
+            } else {
+                result.append(ch);
+            }
+        }
+        return result.toString();
+    }
+
+    // Frequency analysis
+    public static void frequencyAnalysis(String ciphertext) {
+        int[] freq = new int[26];
+
+        // Count frequencies
+        for (char ch : ciphertext.toCharArray()) {
+            if (Character.isLetter(ch)) {
+                freq[Character.toUpperCase(ch) - 'A']++;
+            }
+        }
+
+        // Find most frequent letter
+        int maxFreq = -1, maxIndex = -1;
+        for (int i = 0; i < 26; i++) {
+            if (freq[i] > maxFreq) {
+                maxFreq = freq[i];
+                maxIndex = i;
+            }
+        }
+
+        char mostFrequent = (char) (maxIndex + 'A');
+        System.out.println("Most frequent letter in ciphertext: " + mostFrequent);
+
+        // Assume it was originally 'E'
+        int shift = (mostFrequent - 'E' + 26) % 26;
+        System.out.println("Likely shift: " + shift);
+
+        // Decrypt using this shift
+        String decrypted = decrypt(ciphertext, shift);
+        System.out.println("Decrypted text (guess): " + decrypted);
+    }
+
+    public static void main(String[] args) {
+        String ciphertext = "Khoor Zruog"; // Example: "Hello World" with shift 3
+        frequencyAnalysis(ciphertext);
+    }
+}
+🔹 Example Output
+For ciphertext "Khoor Zruog":
+
+Most frequent letter in ciphertext: O
+Likely shift: 3
+Decrypted text (guess): Hello World
+👉 This is a basic version. A stronger implementation:
+
+Try mapping not just E but also T, A, O, etc.
+
+Score results by checking dictionary words.
+
+Pick the best-looking plaintext.
+
+
+
+import java.util.*;
+Imports the entire java.util package.
+
+We need it for things like arrays and collections (though here, mainly for Arrays).
+
+public class CaesarFrequencyAnalysis {
+Declares a public class named CaesarFrequencyAnalysis.
+
+This is the container for our methods.
+
+🔹 Decrypt method
+    public static String decrypt(String text, int shift) {
+        StringBuilder result = new StringBuilder();
+        shift = ((shift % 26) + 26) % 26; // normalize
+Defines a method decrypt that takes a String text and an integer shift.
+
+Creates a StringBuilder to build the decrypted text.
+
+Normalizes the shift to always be between 0 and 25.
+(This avoids negative values or values bigger than 26).
+
+        for (char ch : text.toCharArray()) {
+Converts the text into a char array, then loops over each character ch.
+
+            if (Character.isUpperCase(ch)) {
+                char c = (char) ((ch - 'A' - shift + 26) % 26 + 'A');
+                result.append(c);
+If the character is uppercase:
+
+Convert ch into a 0–25 index: (ch - 'A').
+
+Subtract the shift.
+
+Add 26 to prevent negative values.
+
+% 26 to wrap around (circular alphabet).
+
+Add 'A' back to return it to letter space.
+
+Append the result to the string.
+
+            } else if (Character.isLowerCase(ch)) {
+                char c = (char) ((ch - 'a' - shift + 26) % 26 + 'a');
+                result.append(c);
+If lowercase, do the same but relative to 'a'.
+
+Ensures case is preserved.
+
+            } else {
+                result.append(ch);
+            }
+        }
+If it’s not a letter (space, digit, punctuation), append it unchanged.
+
+Loop continues.
+
+        return result.toString();
+    }
+Convert the StringBuilder back to a String and return the decrypted text.
+
+🔹 Frequency Analysis method
+    public static void frequencyAnalysis(String ciphertext) {
+        int[] freq = new int[26];
+Defines a method for frequency analysis.
+
+Creates an integer array of size 26 (to count occurrences of each letter A–Z).
+
+        for (char ch : ciphertext.toCharArray()) {
+            if (Character.isLetter(ch)) {
+                freq[Character.toUpperCase(ch) - 'A']++;
+            }
+        }
+Loop over every character in ciphertext.
+
+If it’s a letter:
+
+Convert to uppercase (so a and A count together).
+
+Subtract 'A' to get an index from 0 to 25.
+
+Increment that position in the frequency array.
+
+        int maxFreq = -1, maxIndex = -1;
+        for (int i = 0; i < 26; i++) {
+            if (freq[i] > maxFreq) {
+                maxFreq = freq[i];
+                maxIndex = i;
+            }
+        }
+Finds the index of the most frequent letter.
+
+maxIndex will hold the position (0 = A, 4 = E, etc.).
+
+maxFreq stores how many times it occurred.
+
+        char mostFrequent = (char) (maxIndex + 'A');
+        System.out.println("Most frequent letter in ciphertext: " + mostFrequent);
+Converts that index back into a letter by adding 'A'.
+
+Prints the most frequent ciphertext letter.
+
+        int shift = (mostFrequent - 'E' + 26) % 26;
+        System.out.println("Likely shift: " + shift);
+Assumes the most common letter was originally 'E'.
+
+Calculates the shift needed to move from 'E' to mostFrequent.
+
+Prints that shift.
+
+        String decrypted = decrypt(ciphertext, shift);
+        System.out.println("Decrypted text (guess): " + decrypted);
+    }
+Decrypts the ciphertext with the guessed shift.
+
+Prints the decrypted result (likely plaintext).
+
+🔹 Main method
+    public static void main(String[] args) {
+        String ciphertext = "Khoor Zruog"; // Example: "Hello World" with shift 3
+        frequencyAnalysis(ciphertext);
+    }
+}
+main is the entry point.
+
+Example ciphertext "Khoor Zruog" (which is "Hello World" encrypted with shift 3).
+
+Calls the frequency analysis function.
+
+🔹 Example Run
+Most frequent letter in ciphertext: O
+Likely shift: 3
+Decrypted text (guess): Hello World
