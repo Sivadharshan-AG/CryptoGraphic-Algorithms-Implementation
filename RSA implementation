@@ -1,0 +1,102 @@
+Simple RSA Implementation in Java
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
+public class SimpleRSA {
+    private BigInteger n, d, e;
+    private int bitlen = 1024; // key size in bits
+
+    // Constructor: generate keys
+    public SimpleRSA() {
+        SecureRandom r = new SecureRandom();
+        
+        // Step 1: Choose two large primes p and q
+        BigInteger p = new BigInteger(bitlen / 2, 100, r);
+        BigInteger q = new BigInteger(bitlen / 2, 100, r);
+
+        // Step 2: Compute modulus n = p * q
+        n = p.multiply(q);
+
+        // Step 3: Compute phi(n) = (p-1)(q-1)
+        BigInteger phi = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
+
+        // Step 4: Choose public exponent e (commonly 65537)
+        e = new BigInteger("65537");
+
+        // Step 5: Compute private exponent d such that (d*e) % phi = 1
+        d = e.modInverse(phi);
+    }
+
+    // Encryption: c = m^e mod n
+    public BigInteger encrypt(BigInteger message) {
+        return message.modPow(e, n);
+    }
+
+    // Decryption: m = c^d mod n
+    public BigInteger decrypt(BigInteger encrypted) {
+        return encrypted.modPow(d, n);
+    }
+
+    // Getters for public/private keys
+    public BigInteger getN() { return n; }
+    public BigInteger getE() { return e; }
+    public BigInteger getD() { return d; }
+
+    // Demo
+    public static void main(String[] args) {
+        SimpleRSA rsa = new SimpleRSA();
+
+        String plaintext = "HELLO RSA!";
+        System.out.println("Plaintext: " + plaintext);
+
+        // Convert text to BigInteger
+        BigInteger message = new BigInteger(plaintext.getBytes());
+
+        // Encrypt
+        BigInteger ciphertext = rsa.encrypt(message);
+        System.out.println("Ciphertext: " + ciphertext);
+
+        // Decrypt
+        BigInteger decrypted = rsa.decrypt(ciphertext);
+        String decryptedText = new String(decrypted.toByteArray());
+        System.out.println("Decrypted: " + decryptedText);
+
+        // Print keys (for understanding)
+        System.out.println("\nPublic key (e, n): (" + rsa.getE() + ", " + rsa.getN() + ")");
+        System.out.println("Private key (d, n): (" + rsa.getD() + ", " + rsa.getN() + ")");
+    }
+}
+✅ Explanation (Step by Step)
+Key Generation
+
+Pick two random primes p and q.
+
+Compute n = p * q.
+
+Compute Euler’s totient: phi(n) = (p-1)*(q-1).
+
+Pick public exponent e (commonly 65537).
+
+Compute private exponent d = e⁻¹ mod phi.
+
+Encryption
+
+ciphertext = (message^e) mod n
+Decryption
+
+message = (ciphertext^d) mod n
+BigInteger
+
+We use BigInteger because RSA needs very large numbers.
+
+modPow() efficiently computes (a^b) mod n.
+
+🔹 Example Output (shortened for clarity)
+Plaintext: HELLO RSA!
+Ciphertext: 247198462984763428376429837642...
+Decrypted: HELLO RSA!
+
+Public key (e, n): (65537, 1429819273984723...)
+Private key (d, n): (9847298374928374..., 1429819273984723...)
+👉 This implementation is educational.
+For real security, Java already has built-in RSA in javax.crypto and java.security libraries.
