@@ -1,0 +1,65 @@
+Common OpenSSL commands you’ve likely seen before in class or lab, grouped by purpose 
+(key generation, encryption/decryption, certificates, etc.), along with short explanations.
+
+1. RSA Key Generation and Inspection
+Generate a Private Key
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+Generates a 2048-bit RSA private key and saves it as private.pem.
+
+Extract the Public Key
+openssl rsa -in private.pem -pubout -out public.pem
+Extracts the public key from the private key and saves it as public.pem.
+
+View key details
+openssl rsa -in private.pem -text -noout
+Prints the private key details in readable form.
+
+2. Encryption and Decryption
+Encrypt a file (with public key)
+openssl rsautl -encrypt -inkey public.pem -pubin -in message.txt -out encrypted.bin
+Encrypts message.txt using the public key → saves ciphertext in encrypted.bin.
+
+Decrypt the file (with private key)
+openssl rsautl -decrypt -inkey private.pem -in encrypted.bin -out decrypted.txt
+Decrypts the ciphertext using the private key → gets back the original plaintext.
+
+3. Digital Signature (DSS / RSA Sign & Verify)
+Generate signature
+openssl dgst -sha256 -sign private.pem -out sign.bin message.txt
+Signs the message using SHA-256 + private key → signature in sign.bin.
+
+Verify signature
+openssl dgst -sha256 -verify public.pem -signature sign.bin message.txt
+Verifies the signature using the public key. Prints “Verified OK” if it matches.
+
+4. Diffie-Hellman Parameters
+Generate DH parameters
+openssl dhparam -out dhparam.pem 2048
+Generates a 2048-bit Diffie-Hellman parameter file.
+
+5. AES Symmetric Encryption
+Encrypt a file using AES
+openssl enc -aes-256-cbc -salt -in plain.txt -out enc.txt
+Encrypts using AES-256 in CBC mode.
+
+Decrypt AES file
+openssl enc -aes-256-cbc -d -in enc.txt -out dec.txt
+Decrypts the encrypted file using the same password.
+
+6. Hashing (SHA, MD5, etc.)
+Generate hash
+openssl dgst -sha256 message.txt
+Computes the SHA-256 hash of the file.
+
+Commonly Used Options
+Option	Meaning
+-in	Input file
+-out	Output file
+-pubin	Treat key as public key
+-pubout	Output public key
+-text	Human-readable output
+-noout	Don’t output encoded key
+-encrypt / -decrypt	Perform encryption/decryption
+-sign / -verify	Digital signature operations
+Would you like me to write a step-by-step OpenSSL workflow (like: generate keys → encrypt → decrypt → sign → verify) that you can directly try in your terminal?
+
